@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% set title = 'Новая рецензия' %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+{% endblock %}
+
+{% block content %}
+<h1>Рецензия на книгу «{{ book.title }}»</h1>
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label" for="rating">Оценка</label>
+        <select class="form-select" id="rating" name="rating">
+            <option value="5" selected>отлично</option>
+            <option value="4">хорошо</option>
+            <option value="3">удовлетворительно</option>
+            <option value="2">неудовлетворительно</option>
+            <option value="1">плохо</option>
+            <option value="0">ужасно</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="text">Текст рецензии</label>
+        <textarea class="form-control" id="text" name="text" rows="8" required></textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+    <a class="btn btn-secondary" href="{{ url_for('show_book', book_id=book.id) }}">Отмена</a>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+    new EasyMDE({ element: document.getElementById('text'), spellChecker: false, status: false });
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='420' height='620' viewBox='0 0 420 620'>
+<defs>
+    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0%' stop-color='#7c2d12'/>
+        <stop offset='100%' stop-color='#fdba74'/>
+    </linearGradient>
+</defs>
+<rect width='420' height='620' rx='18' fill='url(#g)'/>
+<rect x='32' y='36' width='356' height='548' rx='14' fill='none' stroke='rgba(255,255,255,0.7)' stroke-width='3'/>
+<text x='210' y='92' font-size='17' letter-spacing='3' text-anchor='middle' fill='white' opacity='0.85' font-family='Arial'>ЭЛЕКТРОННАЯ БИБЛИОТЕКА</text>
+<line x1='92' y1='122' x2='328' y2='122' stroke='white' stroke-width='2' opacity='0.65'/>
+<text x='210' y='210' font-size='34' font-weight='700' text-anchor='middle' fill='white' font-family='Arial'>Дюна</text>
+<text x='210' y='430' font-size='21' text-anchor='middle' fill='white' opacity='0.95' font-family='Arial'>Фрэнк Герберт</text>
+<circle cx='210' cy='535' r='38' fill='rgba(255,255,255,0.16)'/>
+<text x='210' y='544' font-size='24' font-weight='700' text-anchor='middle' fill='white' font-family='Arial'>DN</text>
+</svg>

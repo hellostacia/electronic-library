@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% from 'pagination.html' import render_pagination %}
+{% set title = 'Главная' %}
+
+{% block content %}
+<section class="library-hero rounded-4 p-4 p-lg-5 mb-4 text-white position-relative overflow-hidden">
+    <div class="hero-decoration"></div>
+    <div class="row align-items-center g-4 position-relative">
+        <div class="col-lg-8">
+            <div class="badge bg-light text-dark mb-3 px-3 py-2">АИС «Электронная библиотека»</div>
+            <h1 class="display-5 fw-bold mb-3">Каталог популярной зарубежной литературы</h1>
+            <p class="lead mb-4">Онлайн-каталог зарубежной литературы с рецензиями, рейтингами и статистикой просмотров.</p>
+            <div class="d-flex flex-wrap gap-2 small">
+                <span class="hero-chip">Рецензии пользователей</span>
+                <span class="hero-chip">История просмотров</span>
+                <span class="hero-chip">CSV-отчёты</span>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <form class="search-panel bg-white rounded-4 p-3 p-lg-4 shadow-sm" method="get" action="{{ url_for('index') }}#catalog">
+                <label class="form-label text-dark fw-semibold" for="q">Поиск по каталогу</label>
+                <div class="input-group">
+                    <input class="form-control" id="q" name="q" value="{{ q or '' }}" placeholder="Название, автор, жанр, издательство">
+                    <button class="btn btn-primary" type="submit">Найти</button>
+                </div>
+                <div class="form-text">Поиск работает без учёта регистра: можно писать «агата кристи», «детектив» или «оруэлл».</div>
+                {% if q %}
+                    <a class="small d-inline-block mt-2" href="{{ url_for('index') }}">Сбросить поиск</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</section>
+
+{% if q %}
+<section class="search-result-banner rounded-4 p-4 mb-4 bg-white shadow-sm" id="catalog">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Результаты поиска</div>
+            <h2 class="h4 mb-1">Запрос: «{{ q }}»</h2>
+            <div class="text-muted">
+                Найдено книг: <strong>{{ books.total }}</strong>. Поиск выполнен по названию, автору, издательству и жанрам.
+            </div>
+        </div>
+        <a class="btn btn-outline-primary" href="{{ url_for('index') }}">Показать весь каталог</a>
+    </div>
+</section>
+{% else %}
+    {% if popular_books %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="h4 mb-1">Популярные книги за последние 3 месяца</h2>
+            </div>
+        </div>
+        <div class="row g-3">
+            {% for book, views_count in popular_books %}
+                <div class="col-sm-6 col-lg-4 col-xl">
+                    <a class="popular-card card h-100 text-decoration-none overflow-hidden border-0 shadow-sm" href="{{ url_for('show_book', book_id=book.id) }}">
+                        {% if book.cover %}
+                            <img class="card-img-top popular-cover" src="{{ url_for('static', filename='uploads/' + book.cover.filename) }}" alt="Обложка {{ book.title }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="fw-semibold text-dark mb-1">{{ book.title }}</div>
+                            <small class="text-muted">{{ book.author }}</small>
+                            <div class="mt-2 small text-primary fw-semibold">{{ views_count }} просмотров</div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if recent_books %}
+    <section class="mb-5">
+        <h2 class="h4 mb-3">Недавно просмотренные книги</h2>
+        <div class="list-group shadow-sm rounded-4 overflow-hidden">
+            {% for book, last_visit in recent_books %}
+                <a class="list-group-item list-group-item-action recent-item d-flex justify-content-between align-items-center gap-3 py-3" href="{{ url_for('show_book', book_id=book.id) }}">
+                    <span class="d-flex align-items-center gap-3">
+                        {% if book.cover %}
+                            <img class="recent-cover rounded-3" src="{{ url_for('static', filename='uploads/' + book.cover.filename) }}" alt="Обложка {{ book.title }}">
+                        {% endif %}
+                        <span>
+                            <span class="fw-semibold">{{ book.title }}</span>
+                            <span class="text-muted small d-block">{{ book.author }}</span>
+                        </span>
+                    </span>
+                    <small class="text-muted text-nowrap">{{ last_visit|datetime }}</small>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+{% endif %}
+
+<section {% if not q %}id="catalog"{% endif %}>
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+        <div>
+            <h2 class="h3 mb-1">{% if q %}Найденные книги{% else %}Каталог книг{% endif %}</h2>
+            <div class="text-muted small">
+                {% if q %}
+                    Ниже показаны только книги, подходящие под запрос.
+                {% else %}
+                    Книги отсортированы по году выхода: сначала новые. На странице отображается не более 10 книг.
+                {% endif %}
+            </div>
+        </div>
+        {% if can_create_books() %}
+            <a class="btn btn-primary" href="{{ url_for('new_book') }}">Добавить книгу</a>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for book in books.items %}
+            <div class="col-sm-6 col-lg-4 col-xxl-3">
+                <div class="card book-card h-100 shadow-sm border-0 overflow-hidden">
+                    <div class="book-cover-wrap">
+                        {% if book.cover %}
+                            <img class="book-thumb" src="{{ url_for('static', filename='uploads/' + book.cover.filename) }}" alt="Обложка {{ book.title }}">
+                        {% endif %}
+                        <div class="rating-ribbon">
+                            {% if book.average_rating is not none %}
+                                {{ book.average_rating }} ★
+                            {% else %}
+                                нет оценок
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="h5 card-title mb-1">{{ book.title }}</h3>
+                        <div class="small text-muted mb-2">{{ book.author }} · {{ book.year }}</div>
+                        <div class="mb-3 genre-list">
+                            {% for genre in book.genres %}
+                                <span class="badge rounded-pill text-bg-light border">{{ genre.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <p class="small text-muted flex-grow-1 line-clamp-3">{{ book.description|striptags }}</p>
+                        <div class="small mb-3 text-warning stars-line">
+                            {% if book.average_rating is not none %}
+                                {{ book.average_rating|stars }} <span class="text-muted ms-1">{{ book.review_count }} рец.</span>
+                            {% else %}
+                                <span class="text-muted">Рецензий пока нет</span>
+                            {% endif %}
+                        </div>
+                        <div class="mt-auto d-flex flex-wrap gap-1 action-cell">
+                            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('show_book', book_id=book.id) }}">Просмотр</a>
+                            {% if can_edit_books() %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('edit_book', book_id=book.id) }}">Редактирование</a>
+                            {% endif %}
+                            {% if can_delete_books() %}
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteBook{{ book.id }}">Удалить</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if can_delete_books() %}
+                <div class="modal fade" id="deleteBook{{ book.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Удаление книги</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Вы уверены, что хотите удалить книгу «{{ book.title }}»?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                                <form method="post" action="{{ url_for('delete_book', book_id=book.id) }}">
+                                    <button class="btn btn-danger" type="submit">Да</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="col-12">
+                <div class="empty-state border rounded-4 text-center text-muted p-5 bg-white shadow-sm">
+                    <div class="display-6 mb-2">📚</div>
+                    <div class="fw-semibold">Книги не найдены</div>
+                    {% if q %}
+                        <div class="small mt-1">По запросу «{{ q }}» нет совпадений. Попробуйте другое название, автора, издательство или жанр.</div>
+                        <a class="btn btn-outline-primary btn-sm mt-3" href="{{ url_for('index') }}">Сбросить поиск</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {{ render_pagination(books, 'index', {'q': q}) }}
+</section>
+{% endblock %}

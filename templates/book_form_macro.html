@@ -1,0 +1,62 @@
+{% macro render_book_form(book, genres, errors, form, selected_genres, mode) %}
+<form method="post" enctype="multipart/form-data" novalidate>
+    <div class="mb-3">
+        <label class="form-label" for="title">Название</label>
+        <input class="form-control {% if errors.get('title') %}is-invalid{% endif %}" id="title" name="title" value="{{ form.get('title', book.title if book else '') }}">
+        {% if errors.get('title') %}<div class="invalid-feedback">{{ errors.get('title') }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="description">Краткое описание</label>
+        <textarea class="form-control {% if errors.get('description') %}is-invalid{% endif %}" id="description" name="description" rows="8">{{ form.get('description', book.description if book else '') }}</textarea>
+        {% if errors.get('description') %}<div class="invalid-feedback">{{ errors.get('description') }}</div>{% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label" for="year">Год</label>
+            <input class="form-control {% if errors.get('year') %}is-invalid{% endif %}" id="year" name="year" value="{{ form.get('year', book.year if book else '') }}">
+            {% if errors.get('year') %}<div class="invalid-feedback">{{ errors.get('year') }}</div>{% endif %}
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label" for="pages">Объём, страниц</label>
+            <input class="form-control {% if errors.get('pages') %}is-invalid{% endif %}" id="pages" name="pages" value="{{ form.get('pages', book.pages if book else '') }}">
+            {% if errors.get('pages') %}<div class="invalid-feedback">{{ errors.get('pages') }}</div>{% endif %}
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label" for="genre_ids">Жанры</label>
+            <select class="form-select {% if errors.get('genre_ids') %}is-invalid{% endif %}" id="genre_ids" name="genre_ids" multiple size="5">
+                {% for genre in genres %}
+                    <option value="{{ genre.id }}" {% if genre.id|string in selected_genres %}selected{% endif %}>{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+            {% if errors.get('genre_ids') %}<div class="invalid-feedback">{{ errors.get('genre_ids') }}</div>{% endif %}
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="publisher">Издательство</label>
+        <input class="form-control {% if errors.get('publisher') %}is-invalid{% endif %}" id="publisher" name="publisher" value="{{ form.get('publisher', book.publisher if book else '') }}">
+        {% if errors.get('publisher') %}<div class="invalid-feedback">{{ errors.get('publisher') }}</div>{% endif %}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="author">Автор</label>
+        <input class="form-control {% if errors.get('author') %}is-invalid{% endif %}" id="author" name="author" value="{{ form.get('author', book.author if book else '') }}">
+        {% if errors.get('author') %}<div class="invalid-feedback">{{ errors.get('author') }}</div>{% endif %}
+    </div>
+
+    {% if mode == 'create' %}
+        <div class="mb-3">
+            <label class="form-label" for="cover">Обложка</label>
+            <input class="form-control {% if errors.get('cover') %}is-invalid{% endif %}" id="cover" name="cover" type="file" accept="image/*">
+            {% if errors.get('cover') %}<div class="invalid-feedback">{{ errors.get('cover') }}</div>{% endif %}
+        </div>
+    {% endif %}
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a class="btn btn-secondary" href="{{ url_for('index') }}">Отмена</a>
+    </div>
+</form>
+{% endmacro %}

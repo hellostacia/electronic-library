@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% set title = 'Вход' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card login-card border-0 rounded-4 shadow-sm">
+            <div class="card-body">
+                <h1 class="h3 fw-bold mb-1">Вход в библиотеку</h1>
+                <p class="text-muted mb-4">Авторизуйтесь, чтобы оставлять рецензии и управлять каталогом.</p>
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label" for="login">Логин</label>
+                        <input class="form-control" id="login" name="login" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Пароль</label>
+                        <input class="form-control" id="password" name="password" type="password" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" id="remember" name="remember" type="checkbox">
+                        <label class="form-check-label" for="remember">Запомнить меня</label>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Войти</button>
+                </form>
+            </div>
+        </div>
+        <div class="small text-muted mt-3 text-center">
+            Для входа используйте учётную запись, выданную администратором системы.
+        </div>
+    </div>
+</div>
+{% endblock %}

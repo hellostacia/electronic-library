@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% from 'pagination.html' import render_pagination %}
+{% set title = 'Статистика' %}
+
+{% block content %}
+<section class="stats-hero rounded-4 p-4 p-lg-5 mb-4 bg-white shadow-sm">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+        <div>
+            <div class="text-uppercase small text-muted fw-semibold mb-1">Административный раздел</div>
+            <h1 class="display-6 fw-bold mb-2">Статистика просмотров</h1>
+            <p class="text-muted mb-0">Здесь администратор видит журнал просмотров книг, сводную статистику и может выгрузить данные в CSV.</p>
+        </div>
+        <div class="stats-note rounded-4 p-3">
+            <div class="fw-semibold">Важно</div>
+            <div class="small text-muted">В статистике учитываются просмотры пользователей, вошедших в систему.</div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stats-card rounded-4 p-3 h-100 bg-white shadow-sm">
+            <div class="small text-muted">Всего записей в журнале</div>
+            <div class="h3 mb-0">{{ total_logs }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-card rounded-4 p-3 h-100 bg-white shadow-sm">
+            <div class="small text-muted">Просмотры вошедших пользователей</div>
+            <div class="h3 mb-0">{{ authenticated_views }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-card rounded-4 p-3 h-100 bg-white shadow-sm">
+            <div class="small text-muted">Книги с просмотрами</div>
+            <div class="h3 mb-0">{{ viewed_books }}</div>
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'logs' %}active{% endif %}" href="{{ url_for('statistics', tab='logs') }}">Журнал действий пользователей</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'views' %}active{% endif %}" href="{{ url_for('statistics', tab='views') }}">Статистика просмотра книг</a>
+    </li>
+</ul>
+
+{% if active_tab == 'logs' %}
+    <section class="bg-white rounded-4 shadow-sm p-3 p-lg-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div>
+                <h2 class="h4 mb-1">Журнал действий пользователей</h2>
+                <div class="text-muted small">Записи отсортированы по убыванию даты. В таблице отображается не более 10 записей на странице.</div>
+            </div>
+            <a class="btn btn-outline-primary" href="{{ url_for('export_logs') }}">Экспорт в CSV</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>№</th>
+                    <th>Пользователь</th>
+                    <th>Книга</th>
+                    <th>Дата и время просмотра</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for visit in logs.items %}
+                    <tr>
+                        <td>{{ (logs.page - 1) * logs.per_page + loop.index }}</td>
+                        <td>{{ visit.user.full_name if visit.user else 'Неаутентифицированный пользователь' }}</td>
+                        <td><a href="{{ url_for('show_book', book_id=visit.book.id) }}">{{ visit.book.title }}</a></td>
+                        <td>{{ visit.created_at|datetime }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">Записей пока нет.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {{ render_pagination(logs, 'statistics', {'tab': 'logs'}) }}
+    </section>
+{% else %}
+    <section class="bg-white rounded-4 shadow-sm p-3 p-lg-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div>
+                <h2 class="h4 mb-1">Статистика просмотра книг</h2>
+                <div class="text-muted small">Данные сгруппированы по книгам и отсортированы по количеству просмотров.</div>
+            </div>
+            <a class="btn btn-outline-primary" href="{{ url_for('export_views', date_from=request.args.get('date_from', ''), date_to=request.args.get('date_to', '')) }}">Экспорт в CSV</a>
+        </div>
+        <form class="filter-panel row gy-2 gx-2 align-items-end mb-4 rounded-4 p-3" method="get" action="{{ url_for('statistics') }}">
+            <input type="hidden" name="tab" value="views">
+            <div class="col-md-4">
+                <label class="form-label" for="date_from">Дата от</label>
+                <input class="form-control" id="date_from" name="date_from" type="date" value="{{ request.args.get('date_from', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="date_to">Дата до</label>
+                <input class="form-control" id="date_to" name="date_to" type="date" value="{{ request.args.get('date_to', '') }}">
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary" type="submit">Применить</button>
+                <a class="btn btn-secondary" href="{{ url_for('statistics', tab='views') }}">Сбросить</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>№</th>
+                    <th>Книга</th>
+                    <th>Количество просмотров</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in stats.items %}
+                    <tr>
+                        <td>{{ (stats.page - 1) * stats.per_page + loop.index }}</td>
+                        <td><a href="{{ url_for('show_book', book_id=row.Book.id) }}">{{ row.Book.title }}</a></td>
+                        <td><span class="badge text-bg-primary rounded-pill">{{ row.views_count }}</span></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" class="text-center text-muted py-4">Данных за выбранный период нет.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {{ render_pagination(stats, 'statistics', {'tab': 'views', 'date_from': request.args.get('date_from', ''), 'date_to': request.args.get('date_to', '')}) }}
+    </section>
+{% endif %}
+{% endblock %}

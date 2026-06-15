@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% set title = book.title %}
+
+{% block content %}
+<section class="book-detail-hero rounded-4 p-4 p-lg-5 mb-4 bg-white shadow-sm">
+    <div class="row g-4 align-items-start">
+        <div class="col-md-4 col-lg-3">
+            {% if book.cover %}
+                <img class="img-fluid rounded-4 shadow cover-large" src="{{ url_for('static', filename='uploads/' + book.cover.filename) }}" alt="Обложка {{ book.title }}">
+            {% endif %}
+        </div>
+        <div class="col-md-8 col-lg-9">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                <div>
+                    <div class="text-uppercase small text-muted fw-semibold mb-2">{{ book.author }}</div>
+                    <h1 class="display-6 fw-bold mb-2">{{ book.title }}</h1>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% for genre in book.genres %}
+                            <span class="badge rounded-pill text-bg-primary-subtle text-primary border border-primary-subtle">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if can_edit_books() %}
+                    <a class="btn btn-outline-secondary btn-sm text-nowrap" href="{{ url_for('edit_book', book_id=book.id) }}">Редактировать</a>
+                {% endif %}
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="detail-stat rounded-4 p-3 h-100">
+                        <div class="detail-icon">📅</div>
+                        <div class="text-muted small">Год выхода</div>
+                        <div class="h4 mb-0">{{ book.year }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="detail-stat rounded-4 p-3 h-100">
+                        <div class="detail-icon">⭐</div>
+                        <div class="text-muted small">Средняя оценка</div>
+                        <div class="h4 mb-0">{{ book.average_rating if book.average_rating is not none else '—' }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="detail-stat rounded-4 p-3 h-100">
+                        <div class="detail-icon">💬</div>
+                        <div class="text-muted small">Рецензии</div>
+                        <div class="h4 mb-0">{{ book.review_count }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="detail-stat rounded-4 p-3 h-100">
+                        <div class="detail-icon">📖</div>
+                        <div class="text-muted small">Объём</div>
+                        <div class="h4 mb-0">{{ book.pages }} стр.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0 book-meta-table">
+                    <tr><th class="w-25">Издательство</th><td>{{ book.publisher }}</td></tr>
+                    <tr><th>Автор</th><td>{{ book.author }}</td></tr>
+                    <tr><th>Жанры</th><td>{{ book.genres_string }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-4">
+    <h2 class="h4">Описание</h2>
+    <div class="markdown-body border rounded-4 p-4 bg-white shadow-sm">{{ book.description|markdown }}</div>
+</section>
+
+<section class="mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+        <div>
+            <h2 class="h4 mb-1">Рецензии</h2>
+            <div class="text-muted small">Отзывы пользователей с поддержкой Markdown.</div>
+        </div>
+        {% if current_user.is_authenticated and not own_review %}
+            <a class="btn btn-primary" href="{{ url_for('new_review', book_id=book.id) }}">Написать рецензию</a>
+        {% endif %}
+    </div>
+
+    {% if own_review %}
+        <div class="alert own-review rounded-4 shadow-sm">
+            <div class="fw-semibold mb-1">Вы уже оставили рецензию на эту книгу</div>
+            <div class="text-warning mb-2">{{ own_review.rating|stars }} <span class="text-dark">{{ own_review.rating }}/5</span></div>
+            <div class="markdown-body">{{ own_review.text|markdown }}</div>
+        </div>
+    {% endif %}
+
+    <div class="reviews-list">
+        {% for review in reviews %}
+            <div class="card review-card mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white d-flex justify-content-between gap-3 align-items-start">
+                    <div>
+                        <div class="fw-semibold">{{ review.user.full_name }}</div>
+                        <div class="small text-muted">{{ review.created_at|datetime }}</div>
+                    </div>
+                    <div class="text-end text-nowrap">
+                        <div class="text-warning review-stars">{{ review.rating|stars }}</div>
+                        <div class="small text-muted">{{ review.rating }}/5</div>
+                    </div>
+                </div>
+                <div class="card-body markdown-body">{{ review.text|markdown }}</div>
+            </div>
+        {% else %}
+            {% if not own_review %}
+                <p class="text-muted bg-white border rounded-4 p-4">Рецензий пока нет.</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
